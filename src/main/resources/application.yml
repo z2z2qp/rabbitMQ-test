@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: hdiot_mq_demo
+  rabbitmq:
+    host: 192.168.100.78
+    port: 5672
+    username: will
+    password: will
+    listener:
+      queues: zhitai.queue
+
+server:
+  port: 8093
+
+logging:
+  config: classpath:log4j2-spring.xml
