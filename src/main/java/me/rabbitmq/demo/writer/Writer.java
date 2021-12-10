@@ -23,7 +23,7 @@ import java.util.concurrent.TimeoutException;
  * @version V1.0.0
  * @since 2021/11/12 16:23
  */
-@Component
+//@Component
 public class Writer implements ApplicationRunner, ApplicationListener<ContextClosedEvent> {
 
 

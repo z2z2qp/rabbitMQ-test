@@ -2,15 +2,13 @@ spring:
   application:
     name: hdiot_mq_demo
   rabbitmq:
-    host: 192.168.100.78
-    port: 5672
-    username: will
-    password: will
+    host: 10.201.1.166
+    port: 5007
+    username: admin
+    password: 123qweasdzxc
     listener:
-      queues: ddddddd
+      queues: WS_YSCJ
 
 server:
   port: 8093
 
-logging:
-  config: classpath:log4j2-spring.xml
