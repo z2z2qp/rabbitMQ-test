@@ -19,47 +19,48 @@ public class StreamTest {
 
     @Test
     void listTest(){
-        Random random = new Random();
-        ArrayList<String> baba = new ArrayList<>();
+        var random = new Random();
+        var baba = new ArrayList<String>();
         baba.add("cbaba");
         baba.add("edbf");
         baba.add("abed");
         baba.add("ace");
         baba.add("aee");
-        List<String> str = baba.stream().filter(it->it.startsWith("a")).collect(Collectors.toList());
+        var str = baba.stream().filter(it->it.startsWith("a")).toList();
         System.out.println(str);
-        Map<Integer,List<String>> t = baba.stream().collect(Collectors.groupingBy(String::length));
+        var t = baba.stream().collect(Collectors.groupingBy(String::length));
         System.out.println(t);
-        for (int i = 0; i < 1_000_0000; i++) {
+        for (var i = 0; i < 1_000_0000; i++) {
             if(random.nextBoolean()){
                 baba.add("a"+random.nextDouble());
             }else {
                 baba.add("c"+random.nextDouble());
             }
         }
-        long start = System.currentTimeMillis();
-        unstream(baba);
+        var start = System.currentTimeMillis();
+        var _ =unStream(baba);
         System.out.println(System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
-        stream(baba);
+        var _ =stream(baba);
         System.out.println(System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
-        parallelStream(baba);
+        var _ =parallelStream(baba);
         System.out.println(System.currentTimeMillis() - start);
     }
 
-    private void unstream(List<String> str){
-        ArrayList<String> result = new ArrayList<>();
+    private List<String> unStream(List<String> str){
+        var result = new ArrayList<String>();
         for (String st : str) {
             if (st.startsWith("a")){
                 result.add(st);
             }
         }
+        return result;
     }
-    private void stream(List<String> str){
-        str.stream().filter(it->it.startsWith("a")).collect(Collectors.toList());
+    private List<String> stream(List<String> str){
+        return str.stream().filter(it->it.startsWith("a")).toList();
     }
-    private void parallelStream(List<String> str){
-        str.parallelStream().filter(it->it.startsWith("a")).collect(Collectors.toList());
+    private List<String> parallelStream(List<String> str){
+        return str.parallelStream().filter(it->it.startsWith("a")).toList();
     }
 }

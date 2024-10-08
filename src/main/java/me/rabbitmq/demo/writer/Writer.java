@@ -3,14 +3,14 @@ package me.rabbitmq.demo.writer;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -56,7 +56,7 @@ public class Writer implements ApplicationRunner, ApplicationListener<ContextClo
     @PostConstruct
     public void init() throws IOException, TimeoutException {
         flag = true;
-        ConnectionFactory factory = new ConnectionFactory();
+        var factory = new ConnectionFactory();
         factory.setHost(host);
         factory.setUsername(username);
         factory.setPassword(password);
@@ -72,19 +72,19 @@ public class Writer implements ApplicationRunner, ApplicationListener<ContextClo
     @Override
     public void run(ApplicationArguments args) throws Exception {
         while (flag) {
-            String message = UUID.randomUUID() + ":" + System.currentTimeMillis();
+            var message = UUID.randomUUID() + ":" + System.currentTimeMillis();
             System.out.println(message);
             channel.basicPublish("", queues, null, message.getBytes(StandardCharsets.UTF_8));
             try{
                 Thread.sleep(1000L);
-            }catch (InterruptedException e){
+            }catch (InterruptedException _){
 
             }
         }
     }
 
     @Override
-    public void onApplicationEvent(ContextClosedEvent contextClosedEvent) {
+    public void onApplicationEvent(@NotNull ContextClosedEvent contextClosedEvent) {
         flag = false;
         if (channel != null) {
             try {

@@ -38,52 +38,52 @@ public class Influxdb2Test {
 
     @Test
     public void writeLine() {
-        String data = "mem,host=host1,name=1 use=23.2,no=56";
-        try (WriteApi write = client.getWriteApi()) {
+        var data = "mem,host=host1,name=1 use=23.2,no=56";
+        try (var write = client.makeWriteApi()) {
             write.writeRecord(bucket, org, WritePrecision.NS, data);
         }
     }
 
     @Test
     public void writePoint() {
-        Point point = Point.measurement("mem")
+        var point = Point.measurement("mem")
                 .addTag("host", "host2")
                 .addTag("name", "2")
                 .addField("use", 25.2)
                 .addField("no", 5.6)
                 .time(Instant.now(), WritePrecision.NS);
-        try (WriteApi write = client.getWriteApi()) {
+        try (var write = client.makeWriteApi()) {
             write.writePoint(bucket, org, point);
         }
     }
 
     @Test
     public void writePOJO() {
-        Mem mem = new Mem();
+        var mem = new Mem();
         mem.setHost("host3");
         mem.setTime(Instant.now());
         mem.setNo(0.09);
         mem.setUse(26.2);
-        try (WriteApi write = client.getWriteApi()) {
+        try (var write = client.makeWriteApi()) {
             write.writeMeasurement(bucket, org, WritePrecision.NS, mem);
         }
     }
 
     @Test
     public void query() {
-        String query = String.format("from(bucket: \"%s\") |> range(start: -10d)", bucket);
-        List<MemType> memList = client.getQueryApi().query(query, org, MemType.class);
-        List<FluxTable> tables = client.getQueryApi().query(query, org);
+        var query = String.format("from(bucket: \"%s\") |> range(start: -10d)", bucket);
+        var memList = client.getQueryApi().query(query, org, MemType.class);
+        var tables = client.getQueryApi().query(query, org);
         tables.forEach(it -> it.getRecords().forEach(item -> System.out.println(item.getValues())));
 
-        HashMap<String, List<MemType>> map = new HashMap<>();
+        var map = new HashMap<String, List<MemType>>();
         memList.forEach(it -> {
-            String key = it.getHost() + it.getName() + it.getTime();
+            var key = it.getHost() + it.getName() + it.getTime();
             System.out.println(key);
-            List<MemType> types = map.computeIfAbsent(key, _key -> new ArrayList<>());
+            var types = map.computeIfAbsent(key, _key -> new ArrayList<>());
             types.add(it);
         });
-        List<Mem> list = new ArrayList<>();
+        var list = new ArrayList<>();
         map.values().forEach(v -> {
             Mem mem = new Mem();
             v.forEach(it -> {

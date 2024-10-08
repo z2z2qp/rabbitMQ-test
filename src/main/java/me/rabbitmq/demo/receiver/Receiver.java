@@ -36,7 +36,7 @@ public class Receiver {
     @Bean(name = "factory")
     public RabbitListenerContainerFactory<SimpleMessageListenerContainer> factory(ConnectionFactory
                                                                                           rabbitConnectionFactory) {
-        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        var factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(rabbitConnectionFactory);
         factory.setPrefetchCount(5000);
         return factory;
@@ -44,7 +44,7 @@ public class Receiver {
 
     @RabbitListener(queues = "#{queues}", containerFactory = "factory")
     public void message2(String msg) {
-        String time = LocalDateTime.now().format(formatter);
+        var time = LocalDateTime.now().format(formatter);
         log.info(" {}：{}", time, msg);
 
     }
