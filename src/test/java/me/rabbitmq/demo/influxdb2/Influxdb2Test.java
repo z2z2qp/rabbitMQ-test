@@ -2,10 +2,8 @@ package me.rabbitmq.demo.influxdb2;
 
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
-import com.influxdb.client.WriteApi;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
-import com.influxdb.query.FluxTable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -80,7 +78,7 @@ public class Influxdb2Test {
         memList.forEach(it -> {
             var key = it.getHost() + it.getName() + it.getTime();
             System.out.println(key);
-            var types = map.computeIfAbsent(key, _key -> new ArrayList<>());
+            var types = map.computeIfAbsent(key, _ -> new ArrayList<>());
             types.add(it);
         });
         var list = new ArrayList<>();
@@ -107,7 +105,7 @@ public class Influxdb2Test {
     @Test
     public void query2() {
         String query = String.format("from(bucket: \"%s\") |> range(start: -10d)", bucket);
-        client.getQueryApi().query(query, org, MemType.class, (c, t) -> System.out.println(t));
+        client.getQueryApi().query(query, org, MemType.class, (_, t) -> System.out.println(t));
 
     }
 

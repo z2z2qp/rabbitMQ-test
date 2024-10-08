@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
  * @since 2020/12/10 10:54
  */
 @Slf4j
- @Component
+@Component
 public class Receiver {
     @Value("${spring.rabbitmq.listener.queues}")
     String[] queues;

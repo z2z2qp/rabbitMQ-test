@@ -75,9 +75,9 @@ public class Writer implements ApplicationRunner, ApplicationListener<ContextClo
             var message = UUID.randomUUID() + ":" + System.currentTimeMillis();
             System.out.println(message);
             channel.basicPublish("", queues, null, message.getBytes(StandardCharsets.UTF_8));
-            try{
+            try {
                 Thread.sleep(1000L);
-            }catch (InterruptedException _){
+            } catch (InterruptedException _) {
 
             }
         }
