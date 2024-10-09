@@ -58,4 +58,15 @@ public class MemType {
     public void setTime(Instant time) {
         this.time = time;
     }
+
+    @Override
+    public String toString() {
+        return "MemType{" +
+                "host='" + host + '\'' +
+                ", name='" + name + '\'' +
+                ", field='" + field + '\'' +
+                ", value=" + value +
+                ", time=" + time +
+                '}';
+    }
 }

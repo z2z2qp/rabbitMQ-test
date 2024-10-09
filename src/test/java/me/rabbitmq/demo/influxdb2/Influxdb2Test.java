@@ -4,6 +4,7 @@ import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -11,6 +12,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * me.rabbitmq.demo.influxdb2.Influxdb2Test
@@ -33,13 +35,13 @@ public class Influxdb2Test {
     @BeforeAll
     public static void before() {
         // 设置token，用于认证
-        token = "PWfq-mvweGFUZXAbocR-a__-QXHYB6TfJbRixjFMuox3h1SRvIoIwd1L7loFZkWMsxc_hZXJcL58s6UcYUmjMQ==";
+        token = "DDH2cOZCSxUp38CDfp9f5Zke-MTXqOhbgU4RRPXb536L5aMzbPWF09xLQ-JHizaTikmD4LicLxtF5uw5NAIosw==";
         // 设置存储桶名称，用于存储数据
-        bucket = "raw";
+        bucket = "dev";
         // 设置组织名称
-        org = "heda";
+        org = "jkxx";
         // 创建InfluxDB客户端，用于连接数据库
-        client = InfluxDBClientFactory.create("http://localhost:8086", token.toCharArray());
+        client = InfluxDBClientFactory.create("http://localhost:8086", token.toCharArray(), org, bucket);
     }
 
     // 测试写入数据行的功能
@@ -64,33 +66,33 @@ public class Influxdb2Test {
                 .addField("no", 5.6) // 添加名为"no"的浮点字段，值为5.6
                 .time(Instant.now(), WritePrecision.NS); // 设置当前纳秒时间戳
         // 使用try-with-resources确保WriteApi资源在使用后正确关闭
-        try (var write = client.makeWriteApi()) {
-            // 将点写入到指定的bucket和org中
-            write.writePoint(bucket, org, point);
-        }
+        var write = client.getWriteApiBlocking();
+        // 将点写入到指定的bucket和org中
+        write.writePoint(bucket, org, point);
+
     }
 
     @Test
     public void writePOJO() {
         // 创建一个Mem对象并设置其属性，用于后续写入操作
         var mem = new Mem();
-        mem.setHost("host3");
+        mem.setHost("host5");
+        mem.setName("zjb");
         mem.setTime(Instant.now());
         mem.setNo(0.09);
         mem.setUse(26.2);
 
-        // 使用try-with-resources确保WriteApi资源在使用后被正确关闭
-        try (var write = client.makeWriteApi()) {
-            // 将Mem对象写入到指定的bucket和org中，使用纳秒级的写入精度
-            write.writeMeasurement(bucket, org, WritePrecision.NS, mem);
-        }
+        var write = client.getWriteApiBlocking();
+        // 将Mem对象写入到指定的bucket和org中，使用纳秒级的写入精度
+        write.writeMeasurement(WritePrecision.NS, mem);
+
     }
 
     @Test
     // 执行查询操作
     public void query() {
         // 构建查询语句，从指定桶中获取最近10天的数据
-        var query = String.format("from(bucket: \"%s\") |> range(start: -10d)", bucket);
+        var query = String.format("from(bucket: \"%s\") |> range(start: -10d) |> filter(fn: (r) => (r[\"_measurement\"] == \"mem\"))", bucket);
         // 执行查询并解析为MemType列表
         var memList = client.getQueryApi().query(query, org, MemType.class);
         // 执行查询并打印每个记录的值
@@ -130,11 +132,45 @@ public class Influxdb2Test {
 
     @Test
     // 查询2函数，用于从指定的bucket中查询数据
-    public void query2() {
+    public void query2() throws InterruptedException {
         // 格式化查询语句，从指定的bucket中查询过去10天的数据
-        String query = String.format("from(bucket: \"%s\") |> range(start: -10d)", bucket);
+        String query = String.format("""
+                from(bucket: "%s")
+                    |> range(start: -10d)
+                    |> filter(fn: (r) => (r["_measurement"] == "mem"))
+                """, bucket);
         // 使用查询API执行查询操作，传入查询语句、组织信息和目标类类型，并通过回调函数处理结果
-        client.getQueryApi().query(query, org, MemType.class, (_, t) -> System.out.println(t));
+        var list = client.getQueryApi().query(query, MemType.class)
+                .stream()
+                .collect(Collectors.groupingBy(it -> it.getHost() + it.getName() + it.getTime()))
+                .values().stream()
+                .map(item -> {
+                    var mem = new Mem();
+                    if (item != null && !item.isEmpty()) {
+                        var it = item.getFirst();
+                        mem.setTime(it.getTime());
+                        mem.setName(it.getName());
+                        mem.setHost(it.getHost());
+                        item.forEach(it2 -> {
+                            if (it2.getField().equalsIgnoreCase("no")) {
+                                mem.setNo(it2.getValue());
+                            }
+                            if (it2.getField().equalsIgnoreCase("use")) {
+                                mem.setUse(it2.getValue());
+                            }
+                        });
+                    } else {
+                        mem.setTime(Instant.now());
+                    }
+                    return mem;
+                })
+                .toList();
+        System.out.println(list);
+        Thread.sleep(10000L);
     }
 
+    @AfterAll
+    public static void after() {
+        client.close();
+    }
 }
